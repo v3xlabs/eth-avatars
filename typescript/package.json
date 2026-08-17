@@ -1,0 +1,63 @@
+{
+  "name": "eth-avatars",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Pure TypeScript avatar resolution for Ethereum",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/v3xlabs/eth-avatars.git",
+    "directory": "typescript"
+  },
+  "author": {
+    "name": "v3xlabs",
+    "url": "https://github.com/v3xlabs"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "prepack": "pnpm build"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "license": "LGPL-3.0",
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/node": "^25.5.0",
+    "eslint": "^10.8.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-simple-import-sort": "^13.0.0",
+    "eslint-plugin-sonarjs": "^4.1.0",
+    "eslint-plugin-tailwindcss": "4.0.0-beta.0",
+    "eslint-plugin-unicorn": "^70.0.0",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "eslint-plugin-v3xlabs": "^1.8.1",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.62.1",
+    "vitest": "^3.2.4"
+  },
+  "packageManager": "pnpm@10.15.0",
+  "dependencies": {
+    "ox": "^1.6.2"
+  }
+}
