@@ -15,7 +15,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "useUnknownInCatchVariables": true,
-    "types": ["node"]
+    "skipLibCheck": true,
+    "types": ["node", "wicg-cross-origin-storage"]
   },
   "include": ["src"]
 }
