@@ -1,6 +1,16 @@
-import { WebCryptoAlgorithm } from "./crypto.js";
+type WebCryptoAlgorithm = "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512";
 
+/**
+ * Fetches a file from an URL and caches it in the browser's localStorage.
+ * @param get A function that returns a Promise that resolves to an ArrayBuffer of the file to cache.
+ * @param key The key to use for caching the file in localStorage.
+ * @returns A Promise that resolves to an ArrayBuffer of the cached file.
+ */
 export const cacheInLocalstorage = async (get: () => Promise<ArrayBuffer>, key: string) => {
+    if (typeof localStorage === "undefined") {
+        return await get();
+    }
+
     const localStorageKey = `ens-avatars-cache:${key}`;
     const cached = localStorage.getItem(localStorageKey);
     if (cached) {
@@ -46,6 +56,8 @@ export const cacheInCOS = async (
         await writable.write(blob);
         await writable.close();
         return buffer;
+    } else if (typeof localStorage !== "undefined" && hash) {
+        return cacheInLocalstorage(get, `${hash.algorithm}:${hash.digest}`);
     } else {
         return await get();
     }
