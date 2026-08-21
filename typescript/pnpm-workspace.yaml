@@ -1,0 +1,7 @@
+ignoredBuiltDependencies:
+  - esbuild
+  - iso-constants
+  - unrs-resolver
+
+onlyBuiltDependencies:
+  - node-datachannel

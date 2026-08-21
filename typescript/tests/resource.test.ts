@@ -12,7 +12,7 @@ describe("data URL resource examples", () => {
     });
 });
 
-describe("IPFS resource loads", () => {
+describe.concurrent("IPFS resource loads", () => {
     it("loads an IPFS resource", async () => {
         const path = new URL("ipfs://QmXRMBA1S2em4AoUbZrNY1jcxuhzCWaE494RqSDKfmF3in");
         
@@ -28,4 +28,17 @@ describe("IPFS resource loads", () => {
 
         expect(new TextDecoder().decode(resource)).toBe("This is a test IPFS file\n");
     });
+});
+
+describe("NFT resource loads", () => {
+    it("loads an NFT resource", async () => {
+        const path = new URL("eip155:11155111/erc721:0x435c6163e5df1f3c2d23f96aa467f1c6fcd7f7e7/1");
+
+        const resource = await avatar.resource(path, {
+            ipfsGateway: new URL("https://nftstorage.link/"),
+            rpc: { 11155111: new URL("https://sepolia.gateway.tenderly.co") },
+        });
+
+        expect(resource.byteLength).toBeGreaterThan(0);
+    }, 30_000);
 });
