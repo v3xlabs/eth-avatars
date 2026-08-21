@@ -17,6 +17,11 @@ type NftMetadata = {
     image_data: string | undefined,
 };
 
+type NftImage = {
+    value: string,
+    raw: boolean,
+};
+
 const tokenUri = AbiFunction.from("function tokenURI(uint256) returns (string)");
 const uri = AbiFunction.from("function uri(uint256) returns (string)");
 
@@ -54,7 +59,14 @@ const call = async (rpc: URL, contract: Address.Address, data: `0x${string}`, fe
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(request),
     });
-    return RpcResponse.parse(await response.json(), { request });
+    return RpcResponse.parse(await requireOk(response, rpc).json(), { request });
+};
+
+const requireOk = (response: Response, path: URL): Response => {
+    if (!response.ok) {
+        throw new Error(`RPC request failed (${response.status} ${response.statusText}): ${path}`);
+    }
+    return response;
 };
 
 const metadataUri = async (reference: NftReference, rpc: URL, fetcher: typeof fetch): Promise<string> => {
@@ -69,7 +81,7 @@ const metadataString = (metadata: object, key: string): string | undefined => {
     return typeof value === "string" ? value : undefined;
 };
 
-const metadataImage = (metadata: unknown): string => {
+const metadataImage = (metadata: unknown): NftImage => {
     if (metadata === null || typeof metadata !== "object") {
         throw new Error("NFT metadata is not an object");
     }
@@ -82,7 +94,7 @@ const metadataImage = (metadata: unknown): string => {
     if (typeof image !== "string" || !image) {
         throw new Error("NFT metadata has no image");
     }
-    return image;
+    return { value: image, raw: image === parsed.image_data && /^\s*</.test(image) };
 };
 
 const readMetadata = async (path: URL, options: ResourceOptions): Promise<unknown> => {
@@ -110,7 +122,16 @@ export const resolveNft = async (
     const metadataPath = reference.kind === "erc1155"
         ? uriValue.replace("{id}", reference.tokenId.toString(16).padStart(64, "0"))
         : uriValue;
-    const metadataUrl = new URL(metadataPath);
-    const imageUrl = new URL(metadataImage(await readMetadata(metadataUrl, options)), metadataUrl);
+    let metadataUrl: URL;
+    try {
+        metadataUrl = new URL(metadataPath);
+    } catch {
+        throw new Error(`NFT metadata URI must be absolute: ${metadataPath}`);
+    }
+    const image = metadataImage(await readMetadata(metadataUrl, options));
+    if (image.raw) {
+        return new TextEncoder().encode(image.value).buffer;
+    }
+    const imageUrl = new URL(image.value, metadataUrl);
     return resolve(imageUrl, options);
 };

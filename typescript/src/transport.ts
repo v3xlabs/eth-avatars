@@ -65,19 +65,29 @@ const cacheHash = (cid: CID): { digest: string, algorithm: "SHA-256" | "SHA-512"
     }
 };
 
+const requireOk = (response: Response, path: URL): Response => {
+    if (!response.ok) {
+        throw new Error(`Resource request failed (${response.status} ${response.statusText}): ${path}`);
+    }
+    return response;
+};
+
 const fetchIpfs = async (path: URL, gateway: URL, fetcher: typeof fetch): Promise<ArrayBuffer> => {
     const cid = CID.parse(path.hostname);
     const get = async () => {
-        const response = await fetcher(new URL(`/ipfs/${path.hostname}${path.pathname}${path.search}`, gateway), {
+        const gatewayPath = new URL(`/ipfs/${path.hostname}${path.pathname}${path.search}`, gateway);
+        const response = await fetcher(gatewayPath, {
             method: "GET",
             headers: { "Accept": "application/json, image/*" },
         });
-        return response.arrayBuffer();
+        return requireOk(response, gatewayPath).arrayBuffer();
     };
     const hash = cacheHash(cid);
-    return hash
+    const key = `${cid.multihash.code}:${cid.multihash.digest.toString()}:${path.pathname}:${path.search}`;
+    const cached = path.pathname === "/" && !path.search && hash
         ? cacheInCOS(get, hash)
-        : cacheInLocalstorage(get, `${cid.multihash.code}:${cid.multihash.digest.toString()}`);
+        : cacheInLocalstorage(get, key);
+    return cached;
 };
 
 const fetchData = (path: URL): ArrayBuffer => {
@@ -98,15 +108,16 @@ const fetchHttp = async (path: URL, fetcher: typeof fetch): Promise<ArrayBuffer>
         method: "GET",
         headers: { "Accept": "application/json, image/*" },
     });
-    return response.arrayBuffer();
+    return requireOk(response, path).arrayBuffer();
 };
 
 const fetchIpns = async (path: URL, gateway: URL, fetcher: typeof fetch): Promise<ArrayBuffer> => {
-    const response = await fetcher(new URL(`/ipns/${path.hostname}${path.pathname}${path.search}`, gateway), {
+    const gatewayPath = new URL(`/ipns/${path.hostname}${path.pathname}${path.search}`, gateway);
+    const response = await fetcher(gatewayPath, {
         method: "GET",
         headers: { "Accept": "application/json, image/*" },
     });
-    return response.arrayBuffer();
+    return requireOk(response, gatewayPath).arrayBuffer();
 };
 
 /** Fetches bytes from the supported content-addressed and web URI schemes. */

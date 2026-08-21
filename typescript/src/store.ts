@@ -18,7 +18,12 @@ export const cacheInLocalstorage = async (get: () => Promise<ArrayBuffer>, key: 
     }
 
     const buffer = await get();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+        binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+    }
+    const base64 = btoa(binary);
     localStorage.setItem(localStorageKey, base64);
     return buffer;
 };
