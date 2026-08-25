@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { Provider, RpcTransport } from "ox";
+import { describe, expect, it, vi } from "vitest";
 import { avatar } from "../src/index.js";
 
 describe("data URL resource examples", () => {
@@ -32,13 +33,13 @@ describe.concurrent("IPFS resource loads", () => {
 
 describe("NFT resource loads", () => {
     it("loads an NFT resource", async () => {
-        const path = new URL("eip155:11155111/erc721:0x435c6163e5df1f3c2d23f96aa467f1c6fcd7f7e7/1");
+        const path = new URL("eip155:1/erc721:0x25ed58c027921e14d86380ea2646e3a1b5c55a8b/7828");
 
         const resource = await avatar.resource(path, {
-            ipfsGateway: new URL("https://nftstorage.link/"),
-            rpc: { 11155111: new URL("https://sepolia.gateway.tenderly.co") },
+            ipfsGateway: new URL("https://eu.orbitor.dev/"),
+            provider: Provider.from(RpcTransport.fromHttp("https://eth.drpc.org")),
         });
 
-        expect(resource.byteLength).toBeGreaterThan(0);
-    }, 30_000);
+        expect(resource?.byteLength).toBeGreaterThan(0);
+    }, 10_000);
 });

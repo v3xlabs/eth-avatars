@@ -1,6 +1,6 @@
-import { AbiFunction, Address, RpcRequest, RpcResponse } from "ox";
-import type { ResourceOptions, ResourceResolver } from "./resource.js";
-import { fetchResource } from "./transport.js";
+import { AbiFunction, Address } from "ox";
+import type { Hex, Provider } from "ox";
+import type { ResourceOptions } from "./resource.js";
 
 type NftKind = "erc721" | "erc1155";
 
@@ -21,6 +21,11 @@ type NftImage = {
     value: string,
     raw: boolean,
 };
+
+type ResourceFetcher = (path: URL, options: ResourceOptions) => Promise<ArrayBuffer>;
+
+const isHex = (value: unknown): value is Hex.Hex =>
+    typeof value === "string" && /^0x[0-9a-fA-F]*$/.test(value);
 
 const tokenUri = AbiFunction.from("function tokenURI(uint256) returns (string)");
 const uri = AbiFunction.from("function uri(uint256) returns (string)");
@@ -45,34 +50,25 @@ const parseNft = (path: URL): NftReference | undefined => {
     return kind ? { chainId, kind, contract, tokenId } : undefined;
 };
 
-const call = async (rpc: URL, contract: Address.Address, data: `0x${string}`, fetcher: typeof fetch): Promise<`0x${string}`> => {
-    if (!["http:", "https:"].includes(rpc.protocol)) {
-        throw new Error(`RPC URL must use http or https: ${rpc}`);
-    }
-    const request = RpcRequest.from({
-        id: 1,
+const call = async (
+    provider: Provider.Provider,
+    contract: Address.Address,
+    data: `0x${string}`,
+): Promise<`0x${string}`> => {
+    const result = await provider.request({
         method: "eth_call",
         params: [{ to: contract, data }, "latest"],
     });
-    const response = await fetcher(rpc, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request),
-    });
-    return RpcResponse.parse(await requireOk(response, rpc).json(), { request });
-};
-
-const requireOk = (response: Response, path: URL): Response => {
-    if (!response.ok) {
-        throw new Error(`RPC request failed (${response.status} ${response.statusText}): ${path}`);
+    if (!isHex(result)) {
+        throw new Error("EIP-1193 provider returned an invalid eth_call result");
     }
-    return response;
+    return result;
 };
 
-const metadataUri = async (reference: NftReference, rpc: URL, fetcher: typeof fetch): Promise<string> => {
+const metadataUri = async (reference: NftReference, provider: Provider.Provider): Promise<string> => {
     const functionAbi = reference.kind === "erc721" ? tokenUri : uri;
     const data = AbiFunction.encodeData(functionAbi, [reference.tokenId]);
-    const encoded = await call(rpc, reference.contract, data, fetcher);
+    const encoded = await call(provider, reference.contract, data);
     return AbiFunction.decodeResult(functionAbi, encoded);
 };
 
@@ -97,7 +93,11 @@ const metadataImage = (metadata: unknown): NftImage => {
     return { value: image, raw: image === parsed.image_data && /^\s*</.test(image) };
 };
 
-const readMetadata = async (path: URL, options: ResourceOptions): Promise<unknown> => {
+const readMetadata = async (
+    path: URL,
+    options: ResourceOptions,
+    fetchResource: ResourceFetcher,
+): Promise<unknown> => {
     const bytes = await fetchResource(path, options);
     const metadata: unknown = JSON.parse(new TextDecoder().decode(bytes));
     return metadata;
@@ -107,18 +107,17 @@ const readMetadata = async (path: URL, options: ResourceOptions): Promise<unknow
 export const resolveNft = async (
     path: URL,
     options: ResourceOptions,
-    resolve: ResourceResolver,
-): Promise<ArrayBuffer> => {
+    fetchResource: ResourceFetcher,
+): Promise<ArrayBuffer | undefined> => {
     const reference = parseNft(path);
     if (!reference) {
         throw new Error(`Invalid CAIP NFT URI: ${path}`);
     }
-    const fetcher = options.fetch ?? fetch;
-    const rpc = options.rpc?.[reference.chainId];
-    if (!rpc) {
-        throw new Error(`No RPC configured for chain ID ${reference.chainId}`);
+    const provider = options.provider;
+    if (!provider) {
+        throw new Error("No EIP-1193 provider configured");
     }
-    const uriValue = await metadataUri(reference, rpc, fetcher);
+    const uriValue = await metadataUri(reference, provider);
     const metadataPath = reference.kind === "erc1155"
         ? uriValue.replace("{id}", reference.tokenId.toString(16).padStart(64, "0"))
         : uriValue;
@@ -128,10 +127,13 @@ export const resolveNft = async (
     } catch {
         throw new Error(`NFT metadata URI must be absolute: ${metadataPath}`);
     }
-    const image = metadataImage(await readMetadata(metadataUrl, options));
+    const image = metadataImage(await readMetadata(metadataUrl, options, fetchResource));
     if (image.raw) {
         return new TextEncoder().encode(image.value).buffer;
     }
     const imageUrl = new URL(image.value, metadataUrl);
-    return resolve(imageUrl, options);
+    if (imageUrl.protocol === "eip155:") {
+        return undefined;
+    }
+    return fetchResource(imageUrl, options);
 };

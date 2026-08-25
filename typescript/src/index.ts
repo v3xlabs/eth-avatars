@@ -1,5 +1,5 @@
-import {resource} from "./resource.js";
+import { fetchResource } from "./transport.js";
 
 export const avatar = {
-    resource,
+    resource: fetchResource,
 };

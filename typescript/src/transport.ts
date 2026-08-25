@@ -1,5 +1,6 @@
 import { CID } from "multiformats/cid";
 import { cacheInCOS, cacheInLocalstorage } from "./store.js";
+import { resolveNft } from "./nft.js";
 import type { ResourceOptions } from "./resource.js";
 
 type GatewayPath = {
@@ -120,8 +121,7 @@ const fetchIpns = async (path: URL, gateway: URL, fetcher: typeof fetch): Promis
     return requireOk(response, gatewayPath).arrayBuffer();
 };
 
-/** Fetches bytes from the supported content-addressed and web URI schemes. */
-export const fetchResource = async (path: URL, options: ResourceOptions): Promise<ArrayBuffer> => {
+const fetchResourceContent = async (path: URL, options: ResourceOptions): Promise<ArrayBuffer> => {
     const fetcher = options.fetch ?? fetch;
     const gateway = gatewayPath(path);
 
@@ -146,4 +146,15 @@ export const fetchResource = async (path: URL, options: ResourceOptions): Promis
         default:
             throw new Error(`Unsupported resource protocol: ${path.protocol}`);
     }
+};
+
+/** Fetches bytes from supported resources, including one-hop NFT references. */
+export const fetchResource = async (
+    path: URL,
+    options: ResourceOptions = {},
+): Promise<ArrayBuffer | undefined> => {
+    if (path.protocol === "eip155:") {
+        return resolveNft(path, options, fetchResourceContent);
+    }
+    return fetchResourceContent(path, options);
 };
