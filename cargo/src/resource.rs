@@ -1,14 +1,8 @@
 use std::str::FromStr;
 
 use crate::{
-    modules::{
-        http::Http,
-        ipfs::Ipfs,
-        swarm::Swarm,
-        arweave::Arweave,
-        ethereum::Ethereum,
-    },
-    LocatorError
+    LocatorError,
+    modules::{arweave::Arweave, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm},
 };
 
 pub enum Resource {
@@ -25,7 +19,7 @@ pub trait Locator: Sized + Send + Sync + 'static + FromStr<Err = LocatorError> +
 }
 
 impl FromStr for Resource {
-     type Err = LocatorError;
+    type Err = LocatorError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (schema, _) = s.split_once(':').ok_or(LocatorError::NoSchema)?;

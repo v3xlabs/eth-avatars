@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{Locator, Resource, LocatorError};
+use crate::{Locator, LocatorError, Resource};
 
 pub mod gateway;
 pub use gateway::IpfsGateway;

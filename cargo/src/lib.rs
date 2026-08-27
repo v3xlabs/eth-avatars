@@ -42,13 +42,13 @@ You can configure any of the below sources (one minimum) to support a protocol.
 */
 
 pub mod client;
+pub mod error;
 pub mod modules;
 pub mod resource;
-pub mod error;
 
 pub use {
     client::AvatarClient,
+    error::{FetchError, LocatorError},
+    modules::{AnyFetcher, Fetcher},
     resource::{Locator, Resource},
-    modules::{Fetcher, AnyFetcher},
-    error::{FetchError, LocatorError}
 };

@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{Locator, Resource, LocatorError};
+use crate::{Locator, LocatorError, Resource};
 
 #[cfg(feature = "reqwest")]
 pub mod client;

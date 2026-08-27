@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{Locator, Resource, LocatorError};
+use crate::{Locator, LocatorError, Resource};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Ethereum {
