@@ -1,0 +1,25 @@
+use std::str::FromStr;
+
+use crate::resource::{Locator, Resource};
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct Swarm {
+    pub reference: String,
+}
+
+impl FromStr for Swarm {
+    type Err = std::str::Utf8Error;
+
+    fn from_str(_s: &str) -> Result<Self, Self::Err> {
+        todo!()
+    }
+}
+
+impl Locator for Swarm {
+    fn of(resource: &Resource) -> Option<&Self> {
+        match resource {
+            Resource::Swarm(swarm) => Some(swarm),
+            _ => None,
+        }
+    }
+}

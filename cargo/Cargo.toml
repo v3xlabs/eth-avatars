@@ -9,6 +9,9 @@ repository = "https://github.com/v3xlabs/eth-avatars/"
 [lib]
 crate-type = ["rlib"]
 
+[features]
+reqwest = ["dep:reqwest"]
+
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
 
@@ -23,3 +26,4 @@ tracing-subscriber = "0.3.23"
 thiserror = "2.0.18"
 async-trait = "0.1.89"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"], optional = true }
+sealed = "0.7.0"
