@@ -1,12 +1,15 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::LazyLock};
 
 use alloy::primitives::{Address, ChainId, U256};
+use regex::Regex;
 use strum::{Display, EnumString};
 
 use crate::{Locator, LocatorError, Resource};
 
 pub mod abi;
+pub mod nft;
 pub mod resolver;
+pub use resolver::EthereumResolver;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumString, Display)]
 #[strum(ascii_case_insensitive, serialize_all = "snake_case")]
@@ -26,16 +29,16 @@ pub struct Ethereum {
     pub token_id: U256,
 }
 
+static EIP155_URI: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^(?i:eip155):([0-9]+)/(?i:(erc1155|erc721)):0x([0-9a-fA-F]{40})/([0-9]+)$")
+        .expect("should be a valid regex")
+});
+
 impl FromStr for Ethereum {
     type Err = LocatorError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let regex = regex::Regex::new(
-            r"(?i:eip155):([0-9]+)/(?i:(erc1155|erc721)):0x([0-9a-fA-F]{40})/([0-9]+)",
-        )
-        .expect("should be a valid regex");
-
-        let Some(captures) = regex.captures(s) else {
+        let Some(captures) = EIP155_URI.captures(s) else {
             return Err(LocatorError::Invalid);
         };
 

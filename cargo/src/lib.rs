@@ -33,7 +33,8 @@ You can configure any of the below sources (one minimum) to support a protocol.
     - [`ipfs::IpfsGateway`](`modules::ipfs::IpfsGateway`)
 - [`Swarm`](`modules::swarm::Swarm`) module is still under development
 - [`Arweave`](`modules::arweave::Arweave`) module is still under development
-
+- [`Ethereum`](`modules::ethereum::Ethereum`)
+    - [`ethereum::EthereumResolver`](`modules::ethereum::EthereumResolver`)
 
 ## Features
 

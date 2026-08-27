@@ -34,7 +34,7 @@ impl FromStr for Ipfs {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (schema, rest) = s.split_once(':').ok_or(LocatorError::IpfsSchema)?;
-        let schema: IpfsSchema = schema.parse().unwrap();
+        let schema: IpfsSchema = schema.parse().map_err(|_| LocatorError::IpfsSchema)?;
         let rest = rest.trim_start_matches('/');
 
         let (cid, path) = match rest.split_once('/') {

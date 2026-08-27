@@ -1,10 +1,14 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
 use crate::{
-    LocatorError,
+    FetchError, LocatorError,
     Resource::Unresolved,
     modules::{arweave::Arweave, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm},
 };
+
+pub trait Decoder: Send + Sync {
+    fn decode(&self, bytes: Vec<u8>) -> Result<Resource, FetchError>;
+}
 
 pub enum Resource {
     Raw(Vec<u8>),
@@ -14,6 +18,10 @@ pub enum Resource {
     Swarm(Swarm),
     Arweave(Arweave),
     Ethereum(Ethereum),
+    Decode {
+        source: Box<Resource>,
+        decoder: Arc<dyn Decoder>,
+    },
 }
 
 pub trait Locator: Sized + Send + Sync + 'static + FromStr<Err = LocatorError> + PartialEq {

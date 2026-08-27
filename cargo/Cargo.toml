@@ -18,17 +18,12 @@ tokio = { version = "1", features = ["full"] }
 [dependencies]
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }
-futures = "0"
-async-stream = "0.3.6"
-figment = { version = "0.10.19", features = ["toml"] }
 tracing = { version = "0.1.44", default-features = false, features = ["log"] }
-tracing-subscriber = "0.3.23"
 thiserror = "2.0.18"
 async-trait = "0.1.89"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"], optional = true }
-sealed = "0.7.0"
 alloy = "2"
 strum = { version = "0.28", features = ["derive"] }
 # strum_macros = "0.28"
-regex = "*"
-serde_json = "*"
+regex = "1.13"
+serde_json = "1.0"

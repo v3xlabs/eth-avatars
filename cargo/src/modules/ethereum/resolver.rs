@@ -1,17 +1,22 @@
+use std::{str::FromStr, sync::Arc};
+
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::{
     ContractType, Ethereum,
     abi::{IERC721, IERC1155},
 };
-use crate::{AvatarClient, FetchError, Fetcher, Resource};
+use crate::{
+    FetchError, Fetcher,
+    Resource::{self},
+    modules::ethereum::nft::NftMetadataDecoder,
+};
 
 use alloy::{primitives::ChainId, providers::DynProvider};
 
 /**
-* EthereumResolver is a rewriter that rewrites [`Resource::Ethereum`] to [`Resource::Unresolved`] with a given gateway base_url.
+* EthereumResolver resolves [`Resource::Ethereum`] to [`Resource::Decode`] for further processing.
+* It takes a [`DynProvider`] from [`alloy`].
 */
 pub struct EthereumResolver {
     provider: DynProvider,
@@ -27,54 +32,40 @@ impl EthereumResolver {
     }
 }
 
-#[derive(Deserialize, Serialize)]
-pub struct NftMetadata {
-    pub image: Option<String>,
-    #[serde(flatten)]
-    pub extra: Value,
-}
-
 #[async_trait]
 impl Fetcher for EthereumResolver {
     type Locator = Ethereum;
 
-    async fn fetch(
-        &self,
-        locator: &Ethereum,
-        client: &AvatarClient,
-    ) -> Result<Resource, FetchError> {
-        if locator.network_id != self.network_id {
+    async fn fetch(&self, locator: &Ethereum) -> Result<Resource, FetchError> {
+        let contract = locator.contract;
+        let network_id = locator.network_id;
+        let contract_type = locator.contract_type;
+        let token_id = locator.token_id;
+
+        if network_id != self.network_id {
             return Err(FetchError::Unsupported);
         };
 
-        let url = match locator.contract_type {
+        let url = match contract_type {
             ContractType::ERC721 => {
-                IERC721::new(locator.contract, &self.provider)
-                    .tokenURI(locator.token_id)
+                IERC721::new(contract, &self.provider)
+                    .tokenURI(token_id)
                     .call()
                     .await
             }
             ContractType::ERC1155 => {
-                IERC1155::new(locator.contract, &self.provider)
-                    .uri(locator.token_id)
+                IERC1155::new(contract, &self.provider)
+                    .uri(token_id)
                     .call()
                     .await
             }
         }?;
+        let url = url.replace("{id}", &token_id.to_string());
 
-        let url = url.replace("{id}", &locator.token_id.to_string());
-
-        // fetch url
-        // decode json
-        // extract 'image'
-        println!("url {url}");
-
-        let data = client.fetch(url.parse()?).await?;
-        let parsed = serde_json::from_slice::<NftMetadata>(data.as_slice()).unwrap();
-
-        let image = parsed.image.ok_or(FetchError::Unsupported)?;
-
-        Ok(image.parse::<Resource>()?)
+        Ok(Resource::Decode {
+            source: Box::new(Resource::from_str(&url)?),
+            decoder: Arc::new(NftMetadataDecoder),
+        })
     }
 }
 
@@ -82,8 +73,6 @@ impl Fetcher for EthereumResolver {
 mod tests {
     use std::str::FromStr;
 
-    #[cfg(feature = "reqwest")]
-    use crate::modules::http::client::HttpFetcher;
     use crate::{modules::http::Http, utils::test::get_test_provider};
 
     use super::*;
@@ -94,21 +83,19 @@ mod tests {
             .parse()
             .unwrap();
         let provider = get_test_provider().await;
-        let client = AvatarClient::default();
-
-        #[cfg(feature = "reqwest")]
-        let client = client.with_fetcher(HttpFetcher::from(reqwest::Client::new()));
 
         let gateway = EthereumResolver::new(1, provider);
-        let result = gateway.fetch(&input, &client).await.unwrap();
-        let result = match result {
-            Resource::Http(x) => Some(x),
-            _ => None,
+        let Resource::Decode { source, .. } = gateway.fetch(&input).await.unwrap() else {
+            panic!("expected a decode step");
         };
+        let Resource::Http(url) = *source else {
+            panic!("expected an http metadata source");
+        };
+
         assert_eq!(
-            result.unwrap(),
+            url,
             Http::from_str(
-                "https://raw2.seadn.io/ethereum/0x495f947276749ce646f68ac8c248420045cb7b5e/4a614ab665be97629019977e3bdaad/644a614ab665be97629019977e3bdaad.png"
+                "https://api.opensea.io/api/v1/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/0x109791375735522898048150917964456965919994596086232976516654423066184641413121"
             )
             .unwrap()
         );
