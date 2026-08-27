@@ -1,23 +1,16 @@
 use std::str::FromStr;
+use strum::{Display, EnumString};
 
 use crate::{Locator, LocatorError, Resource};
 
 pub mod gateway;
 pub use gateway::IpfsGateway;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumString, Display)]
+#[strum(ascii_case_insensitive, serialize_all = "snake_case")]
 pub enum IpfsSchema {
     Ipfs,
     Ipns,
-}
-
-impl IpfsSchema {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Ipfs => "ipfs",
-            Self::Ipns => "ipns",
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -36,24 +29,12 @@ impl Locator for Ipfs {
     }
 }
 
-impl FromStr for IpfsSchema {
-    type Err = LocatorError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "ipfs" => Ok(Self::Ipfs),
-            "ipns" => Ok(Self::Ipns),
-            _ => Err(LocatorError::IpfsSchema),
-        }
-    }
-}
-
 impl FromStr for Ipfs {
     type Err = LocatorError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (schema, rest) = s.split_once(':').ok_or(LocatorError::IpfsSchema)?;
-        let schema = schema.parse()?;
+        let schema: IpfsSchema = schema.parse().unwrap();
         let rest = rest.trim_start_matches('/');
 
         let (cid, path) = match rest.split_once('/') {

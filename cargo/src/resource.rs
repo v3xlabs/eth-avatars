@@ -1,12 +1,12 @@
 use std::str::FromStr;
 
 use crate::{
-    LocatorError,
-    modules::{arweave::Arweave, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm},
+    LocatorError, Resource::Unresolved, modules::{arweave::Arweave, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm},
 };
 
 pub enum Resource {
     Raw(Vec<u8>),
+    Unresolved(String),
     Http(Http),
     Ipfs(Ipfs),
     Swarm(Swarm),
@@ -31,7 +31,7 @@ impl FromStr for Resource {
             "eip155" => s.parse().map(Resource::Ethereum),
             "http" | "https" => s.parse().map(Resource::Http),
             // "data" => decode_data_uri(rest).map(Resource::Raw),
-            _ => Err(LocatorError::Invalid),
+            _ => Ok(Unresolved(s.to_string())),
         }
     }
 }

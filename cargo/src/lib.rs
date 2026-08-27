@@ -45,6 +45,7 @@ pub mod client;
 pub mod error;
 pub mod modules;
 pub mod resource;
+pub mod utils;
 
 pub use {
     client::AvatarClient,

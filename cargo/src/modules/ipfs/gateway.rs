@@ -5,7 +5,7 @@ use super::Ipfs;
 use crate::{FetchError, Fetcher, Resource};
 
 /**
-* IpfsGateway is a rewriter that rewrites Resource::Ipfs to Resource::Http with a given gateway base_url.
+* IpfsGateway is a rewriter that rewrites [`Resource::Ipfs`] to [`Resource::Http`] with a given gateway base_url.
 */
 pub struct IpfsGateway {
     base_url: String,
@@ -27,7 +27,7 @@ impl Fetcher for IpfsGateway {
         let mut url = format!(
             "{}/{}/{}",
             self.base_url.trim_end_matches('/'),
-            locator.schema.as_str(),
+            locator.schema,
             locator.cid
         );
 

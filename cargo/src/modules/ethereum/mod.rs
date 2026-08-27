@@ -1,19 +1,69 @@
 use std::str::FromStr;
 
+use alloy::primitives::{Address, ChainId, U256};
+use strum::{Display, EnumString};
+
 use crate::{Locator, LocatorError, Resource};
 
+pub mod abi;
+pub mod resolver;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumString, Display)]
+#[strum(ascii_case_insensitive, serialize_all = "snake_case")]
+pub enum ContractType {
+    ERC721,
+    ERC1155,
+}
+
+/**
+ * CAIP-2 Ethereum `eip155:` Uri
+ */
 #[derive(Debug, PartialEq, Eq)]
 pub struct Ethereum {
-    pub chain_id: u64,
-    pub contract: String,
-    pub token_id: String,
+    pub network_id: ChainId,
+    pub contract_type: ContractType,
+    pub contract: Address,
+    pub token_id: U256,
 }
 
 impl FromStr for Ethereum {
     type Err = LocatorError;
 
-    fn from_str(_s: &str) -> Result<Self, Self::Err> {
-        todo!()
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let regex = regex::Regex::new(
+            r"(?i:eip155):([0-9]+)/(?i:(erc1155|erc721)):0x([0-9a-fA-F]{40})/([0-9]+)",
+        )
+        .expect("should be a valid regex");
+
+        let Some(captures) = regex.captures(s) else {
+            return Err(LocatorError::Invalid);
+        };
+
+        let (Some(network_id), Some(contract_type), Some(contract), Some(token_id)) = (
+            captures.get(1),
+            captures.get(2),
+            captures.get(3),
+            captures.get(4),
+        ) else {
+            return Err(LocatorError::Invalid);
+        };
+
+        Ok(Self {
+            network_id: network_id
+                .as_str()
+                .parse::<u64>()
+                .map_err(|_| LocatorError::Invalid)?,
+            contract_type: contract_type
+                .as_str()
+                .parse()
+                .map_err(|_| LocatorError::Invalid)?,
+            contract: contract
+                .as_str()
+                .parse()
+                .map_err(|_| LocatorError::Invalid)?,
+            token_id: U256::from_str_radix(token_id.as_str(), 10)
+                .map_err(|_| LocatorError::Invalid)?,
+        })
     }
 }
 

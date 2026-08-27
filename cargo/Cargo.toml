@@ -27,3 +27,7 @@ thiserror = "2.0.18"
 async-trait = "0.1.89"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"], optional = true }
 sealed = "0.7.0"
+alloy = "2"
+strum = { version = "0.28", features = ["derive"] }
+# strum_macros = "0.28"
+regex = "*"

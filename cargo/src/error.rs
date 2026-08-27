@@ -31,5 +31,8 @@ pub enum FetchError {
     Transport(#[from] reqwest::Error),
 
     #[error(transparent)]
+    Ethereum(#[from] alloy::contract::Error),
+
+    #[error(transparent)]
     LocatorError(#[from] LocatorError),
 }
