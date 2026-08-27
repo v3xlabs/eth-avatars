@@ -29,6 +29,6 @@ impl Fetcher for HttpFetcher {
             });
         }
 
-        Ok(Resource::Raw(response.bytes().await?.to_vec()))
+        Ok(response.bytes().await?.to_vec().into())
     }
 }

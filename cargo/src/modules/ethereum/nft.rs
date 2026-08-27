@@ -11,13 +11,9 @@ pub struct NftMetadataDecoder;
 
 impl Decoder for NftMetadataDecoder {
     fn decode(&self, bytes: Vec<u8>) -> Result<Resource, FetchError> {
-        let metadata: NftMetadata =
-            serde_json::from_slice(&bytes).map_err(|_| FetchError::Unsupported)?;
-
-        metadata
-            .image
-            .ok_or(FetchError::Unsupported)?
-            .parse()
-            .map_err(Into::into)
+        serde_json::from_slice::<NftMetadata>(&bytes)
+            .map_err(|_| FetchError::Unsupported)
+            .and_then(|x| x.image.ok_or(FetchError::Unsupported))
+            .and_then(|x| x.parse().map_err(Into::into))
     }
 }

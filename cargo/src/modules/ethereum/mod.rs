@@ -38,34 +38,16 @@ impl FromStr for Ethereum {
     type Err = LocatorError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let Some(captures) = EIP155_URI.captures(s) else {
-            return Err(LocatorError::Invalid);
-        };
-
-        let (Some(network_id), Some(contract_type), Some(contract), Some(token_id)) = (
-            captures.get(1),
-            captures.get(2),
-            captures.get(3),
-            captures.get(4),
-        ) else {
-            return Err(LocatorError::Invalid);
-        };
+        let (_, [network_id, contract_type, contract, token_id]) = EIP155_URI
+            .captures(s)
+            .ok_or(LocatorError::Invalid)?
+            .extract();
 
         Ok(Self {
-            network_id: network_id
-                .as_str()
-                .parse::<u64>()
-                .map_err(|_| LocatorError::Invalid)?,
-            contract_type: contract_type
-                .as_str()
-                .parse()
-                .map_err(|_| LocatorError::Invalid)?,
-            contract: contract
-                .as_str()
-                .parse()
-                .map_err(|_| LocatorError::Invalid)?,
-            token_id: U256::from_str_radix(token_id.as_str(), 10)
-                .map_err(|_| LocatorError::Invalid)?,
+            network_id: network_id.parse().map_err(|_| LocatorError::Invalid)?,
+            contract_type: contract_type.parse().map_err(|_| LocatorError::Invalid)?,
+            contract: contract.parse().map_err(|_| LocatorError::Invalid)?,
+            token_id: U256::from_str_radix(token_id, 10).map_err(|_| LocatorError::Invalid)?,
         })
     }
 }

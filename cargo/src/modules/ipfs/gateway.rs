@@ -36,7 +36,7 @@ impl Fetcher for IpfsGateway {
             url.push_str(path.trim_start_matches('/'));
         }
 
-        Ok(Resource::Http(Http { url }))
+        Ok(Http { url }.into())
     }
 }
 

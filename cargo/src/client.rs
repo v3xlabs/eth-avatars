@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{AnyFetcher, FetchError, Fetcher, Resource, resource::Decoder};
+use crate::{AnyFetcher, FetchError, Fetcher, Resource, resource::Dyncoder};
 
 pub struct AvatarClient {
     fetchers: Vec<Arc<dyn AnyFetcher>>,
@@ -31,7 +31,7 @@ impl AvatarClient {
 
     pub async fn fetch(&self, resource: Resource) -> Result<Vec<u8>, FetchError> {
         let mut current = resource;
-        let mut decoders: Vec<Arc<dyn Decoder>> = Vec::new();
+        let mut decoders: Vec<Dyncoder> = Vec::new();
         let mut hops = 0;
 
         loop {
@@ -44,14 +44,14 @@ impl AvatarClient {
                     None => return Ok(bytes),
                     Some(decoder) => decoder.decode(bytes)?,
                 },
-                pending => {
+                pending if hops < self.max_hops => {
                     hops += 1;
-                    if hops > self.max_hops {
-                        return Err(FetchError::TooManyHops {
-                            hops: self.max_hops,
-                        });
-                    }
                     self.step(&pending).await?
+                }
+                _ => {
+                    return Err(FetchError::TooManyHops {
+                        hops: self.max_hops,
+                    });
                 }
             };
         }
@@ -105,7 +105,7 @@ mod tests {
 
     #[tokio::test]
     async fn client_ipfs_to_bytes() {
-        use crate::modules::{http::HttpFetcher};
+        use crate::modules::http::HttpFetcher;
 
         let client = AvatarClient::default()
             .with_fetcher(HttpFetcher::default())

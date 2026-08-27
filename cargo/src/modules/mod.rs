@@ -12,6 +12,10 @@ pub mod swarm;
 pub trait Fetcher: Send + Sync {
     type Locator: Locator;
 
+    fn accepts(&self, _locator: &Self::Locator) -> bool {
+        true
+    }
+
     async fn fetch(&self, locator: &Self::Locator) -> Result<Resource, FetchError>;
 }
 
@@ -23,6 +27,10 @@ pub trait AnyFetcher: Send + Sync {
 #[async_trait]
 impl<F: Fetcher> AnyFetcher for F {
     async fn fetch_any(&self, resource: &Resource) -> Option<Result<Resource, FetchError>> {
-        Some(self.fetch(F::Locator::of(resource)?).await)
+        let locator = F::Locator::of(resource)?;
+
+        self.accepts(locator).then_some(())?;
+
+        Some(self.fetch(locator).await)
     }
 }
