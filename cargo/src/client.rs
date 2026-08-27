@@ -51,7 +51,7 @@ impl AvatarClient {
         let mut failure = None;
 
         for fetcher in &self.fetchers {
-            match fetcher.fetch_any(resource).await {
+            match fetcher.fetch_any(resource, self).await {
                 None => continue,
                 Some(Ok(fetched)) => return Ok(fetched),
                 Some(Err(error)) => {

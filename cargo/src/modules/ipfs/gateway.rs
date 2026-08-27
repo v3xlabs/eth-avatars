@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use super::super::http::Http;
 use super::Ipfs;
-use crate::{FetchError, Fetcher, Resource};
+use crate::{AvatarClient, FetchError, Fetcher, Resource};
 
 /**
 * IpfsGateway is a rewriter that rewrites [`Resource::Ipfs`] to [`Resource::Http`] with a given gateway base_url.
@@ -23,7 +23,7 @@ impl IpfsGateway {
 impl Fetcher for IpfsGateway {
     type Locator = Ipfs;
 
-    async fn fetch(&self, locator: &Ipfs) -> Result<Resource, FetchError> {
+    async fn fetch(&self, locator: &Ipfs, _client: &AvatarClient) -> Result<Resource, FetchError> {
         let mut url = format!(
             "{}/{}/{}",
             self.base_url.trim_end_matches('/'),
@@ -43,6 +43,7 @@ impl Fetcher for IpfsGateway {
 #[cfg(test)]
 mod tests {
     use crate::{
+        AvatarClient,
         modules::{
             Fetcher,
             http::Http,
@@ -57,8 +58,9 @@ mod tests {
         let input: Ipfs = "ipfs://bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu"
             .parse()
             .unwrap();
+        let client = AvatarClient::default();
         let gateway = IpfsGateway::new("https://ipfs.io/");
-        let result = gateway.fetch(&input).await.unwrap();
+        let result = gateway.fetch(&input, &client).await.unwrap();
         let result = match result {
             Resource::Http(x) => Some(x),
             _ => None,

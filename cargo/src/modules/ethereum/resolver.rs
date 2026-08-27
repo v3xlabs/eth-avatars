@@ -1,11 +1,12 @@
 use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use super::{
-    Ethereum,
-    ContractType,
+    ContractType, Ethereum,
     abi::{IERC721, IERC1155},
 };
-use crate::{FetchError, Fetcher, Resource};
+use crate::{AvatarClient, FetchError, Fetcher, Resource};
 
 use alloy::{primitives::ChainId, providers::DynProvider};
 
@@ -26,11 +27,22 @@ impl EthereumResolver {
     }
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct NftMetadata {
+    pub image: Option<String>,
+    #[serde(flatten)]
+    pub extra: Value,
+}
+
 #[async_trait]
 impl Fetcher for EthereumResolver {
     type Locator = Ethereum;
 
-    async fn fetch(&self, locator: &Ethereum) -> Result<Resource, FetchError> {
+    async fn fetch(
+        &self,
+        locator: &Ethereum,
+        client: &AvatarClient,
+    ) -> Result<Resource, FetchError> {
         if locator.network_id != self.network_id {
             return Err(FetchError::Unsupported);
         };
@@ -52,7 +64,17 @@ impl Fetcher for EthereumResolver {
 
         let url = url.replace("{id}", &locator.token_id.to_string());
 
-        Ok(url.parse::<Resource>()?)
+        // fetch url
+        // decode json
+        // extract 'image'
+        println!("url {url}");
+
+        let data = client.fetch(url.parse()?).await?;
+        let parsed = serde_json::from_slice::<NftMetadata>(data.as_slice()).unwrap();
+
+        let image = parsed.image.ok_or(FetchError::Unsupported)?;
+
+        Ok(image.parse::<Resource>()?)
     }
 }
 
@@ -60,6 +82,8 @@ impl Fetcher for EthereumResolver {
 mod tests {
     use std::str::FromStr;
 
+    #[cfg(feature = "reqwest")]
+    use crate::modules::http::client::HttpFetcher;
     use crate::{modules::http::Http, utils::test::get_test_provider};
 
     use super::*;
@@ -70,8 +94,13 @@ mod tests {
             .parse()
             .unwrap();
         let provider = get_test_provider().await;
+        let client = AvatarClient::default();
+
+        #[cfg(feature = "reqwest")]
+        let client = client.with_fetcher(HttpFetcher::from(reqwest::Client::new()));
+
         let gateway = EthereumResolver::new(1, provider);
-        let result = gateway.fetch(&input).await.unwrap();
+        let result = gateway.fetch(&input, &client).await.unwrap();
         let result = match result {
             Resource::Http(x) => Some(x),
             _ => None,
@@ -79,7 +108,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Http::from_str(
-                "https://api.opensea.io/api/v1/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/0x109791375735522898048150917964456965919994596086232976516654423066184641413121"
+                "https://raw2.seadn.io/ethereum/0x495f947276749ce646f68ac8c248420045cb7b5e/4a614ab665be97629019977e3bdaad/644a614ab665be97629019977e3bdaad.png"
             )
             .unwrap()
         );

@@ -31,3 +31,4 @@ alloy = "2"
 strum = { version = "0.28", features = ["derive"] }
 # strum_macros = "0.28"
 regex = "*"
+serde_json = "*"

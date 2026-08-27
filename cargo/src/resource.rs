@@ -1,7 +1,9 @@
 use std::str::FromStr;
 
 use crate::{
-    LocatorError, Resource::Unresolved, modules::{arweave::Arweave, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm},
+    LocatorError,
+    Resource::Unresolved,
+    modules::{arweave::Arweave, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm},
 };
 
 pub enum Resource {
