@@ -1,13 +1,25 @@
 use std::str::FromStr;
 
-use crate::resource::{Locator, Resource};
+use crate::{
+    fetchers::error::LocatorError,
+    resource::{Locator, Resource},
+};
 
 pub mod gateway;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum IpfsSchema {
     Ipfs,
-    Ipns
+    Ipns,
+}
+
+impl IpfsSchema {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Ipfs => "ipfs",
+            Self::Ipns => "ipns",
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -27,34 +39,41 @@ impl Locator for Ipfs {
 }
 
 impl FromStr for IpfsSchema {
-    type Err = std::str::Utf8Error;
+    type Err = LocatorError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "ipfs" => Ok(Self::Ipfs),
             "ipns" => Ok(Self::Ipns),
-            _ => todo!()
-            // _ => Err(std::str::Utf8Error::new()),
+            _ => Err(LocatorError::IpfsSchema),
         }
     }
 }
 
 impl FromStr for Ipfs {
-    type Err = std::str::Utf8Error;
+    type Err = LocatorError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (cid, path): (&str, Option<&str>) = match s.split_once('/') {
+        let (schema, rest) = s.split_once(':').ok_or(LocatorError::IpfsSchema)?;
+        let schema = schema.parse()?;
+        let rest = rest.trim_start_matches('/');
+
+        let (cid, path) = match rest.split_once('/') {
             Some((cid, path)) => (cid, Some(path)),
-            None => (s, None),
+            None => (rest, None),
         };
+
+        if cid.is_empty() {
+            return Err(LocatorError::IpfsEmptyCid);
+        }
+
         Ok(Self {
-            schema: IpfsSchema::Ipfs,
+            schema,
             cid: cid.to_string(),
-            path: path.map(|s| s.to_string()),
+            path: path.filter(|path| !path.is_empty()).map(str::to_string),
         })
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -66,7 +85,10 @@ mod tests {
             .parse()
             .unwrap();
         assert_eq!(input.schema, IpfsSchema::Ipfs);
-        assert_eq!(input.cid, "bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu");
+        assert_eq!(
+            input.cid,
+            "bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu"
+        );
         assert_eq!(input.path, None);
     }
 
@@ -76,7 +98,10 @@ mod tests {
             .parse()
             .unwrap();
         assert_eq!(input.schema, IpfsSchema::Ipfs);
-        assert_eq!(input.cid, "bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu");
+        assert_eq!(
+            input.cid,
+            "bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu"
+        );
         assert_eq!(input.path, None);
     }
 
@@ -86,17 +111,24 @@ mod tests {
             .parse()
             .unwrap();
         assert_eq!(input.schema, IpfsSchema::Ipns);
-        assert_eq!(input.cid, "bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu");
+        assert_eq!(
+            input.cid,
+            "bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu"
+        );
         assert_eq!(input.path, None);
     }
 
     #[tokio::test]
     async fn ipfs_url_path() {
-        let input: Ipfs = "ipfs://bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu/hello/world.txt"
-            .parse()
-            .unwrap();
+        let input: Ipfs =
+            "ipfs://bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu/hello/world.txt"
+                .parse()
+                .unwrap();
         assert_eq!(input.schema, IpfsSchema::Ipfs);
-        assert_eq!(input.cid, "bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu");
+        assert_eq!(
+            input.cid,
+            "bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu"
+        );
         assert_eq!(input.path.unwrap(), "hello/world.txt");
     }
 }

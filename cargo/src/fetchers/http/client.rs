@@ -1,7 +1,10 @@
 use async_trait::async_trait;
 use reqwest::Client;
 
-use crate::fetchers::{Resource, Fetcher, error::FetchError, http::Http};
+use crate::{
+    fetchers::{Fetcher, error::FetchError, http::Http},
+    resource::Resource,
+};
 
 #[derive(Default)]
 pub struct HttpFetcher {
@@ -22,6 +25,6 @@ impl Fetcher for HttpFetcher {
             });
         }
 
-        Ok(Resource::Data(response.bytes().await?.to_vec()))
+        Ok(Resource::Raw(response.bytes().await?.to_vec()))
     }
 }

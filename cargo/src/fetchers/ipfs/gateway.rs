@@ -20,7 +20,12 @@ impl Fetcher for IpfsGateway {
     type Locator = Ipfs;
 
     async fn fetch(&self, locator: &Ipfs) -> Result<Resource, FetchError> {
-        let mut url = format!("{}/ipfs/{}", self.base.trim_end_matches('/'), locator.cid);
+        let mut url = format!(
+            "{}/{}/{}",
+            self.base.trim_end_matches('/'),
+            locator.schema.as_str(),
+            locator.cid
+        );
 
         if let Some(path) = &locator.path {
             url.push('/');
@@ -33,14 +38,15 @@ impl Fetcher for IpfsGateway {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
     use crate::{
         fetchers::{
             Fetcher,
             http::Http,
             ipfs::{Ipfs, gateway::IpfsGateway},
-        }, resource::Resource,
+        },
+        resource::Resource,
     };
+    use std::str::FromStr;
 
     #[tokio::test]
     async fn redirects_ipfs_url() {

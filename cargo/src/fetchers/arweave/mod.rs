@@ -1,6 +1,9 @@
 use std::str::FromStr;
 
-use crate::resource::{Locator, Resource};
+use crate::{
+    fetchers::error::LocatorError,
+    resource::{Locator, Resource},
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Arweave {
@@ -8,7 +11,7 @@ pub struct Arweave {
 }
 
 impl FromStr for Arweave {
-    type Err = std::str::Utf8Error;
+    type Err = LocatorError;
 
     fn from_str(_s: &str) -> Result<Self, Self::Err> {
         todo!()

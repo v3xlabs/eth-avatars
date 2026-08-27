@@ -1,6 +1,9 @@
 use std::str::FromStr;
 
-use crate::resource::{Locator, Resource};
+use crate::{
+    fetchers::error::LocatorError,
+    resource::{Locator, Resource},
+};
 
 #[cfg(feature = "reqwest")]
 pub mod client;
@@ -11,7 +14,7 @@ pub struct Http {
 }
 
 impl FromStr for Http {
-    type Err = std::str::Utf8Error;
+    type Err = LocatorError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self { url: s.to_string() })

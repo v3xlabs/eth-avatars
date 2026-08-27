@@ -1,6 +1,15 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
+pub enum LocatorError {
+    #[error("expected an ipfs or ipns url")]
+    IpfsSchema,
+
+    #[error("url carries no cid")]
+    IpfsEmptyCid,
+}
+
+#[derive(Debug, Error)]
 pub enum FetchError {
     #[error("no registered fetcher accepts this resource")]
     Unsupported,
@@ -14,4 +23,7 @@ pub enum FetchError {
     #[cfg(feature = "reqwest")]
     #[error(transparent)]
     Transport(#[from] reqwest::Error),
+
+    #[error(transparent)]
+    LocatorError(#[from] LocatorError),
 }
