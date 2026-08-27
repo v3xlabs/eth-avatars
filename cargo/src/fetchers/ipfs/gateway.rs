@@ -34,14 +34,12 @@ impl Fetcher for IpfsGateway {
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
-
     use crate::{
         fetchers::{
             Fetcher,
             http::Http,
             ipfs::{Ipfs, gateway::IpfsGateway},
-        },
-        resource::Resource::{self, Http},
+        }, resource::Resource,
     };
 
     #[tokio::test]
@@ -52,15 +50,15 @@ mod tests {
         let gateway = IpfsGateway::new("https://ipfs.io/");
         let result = gateway.fetch(&input).await.unwrap();
         let result = match result {
-            Http(x) => Some(x),
+            Resource::Http(x) => Some(x),
             _ => None,
         };
         assert_eq!(
+            result.unwrap(),
             Http::from_str(
                 "https://ipfs.io/ipfs/bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu"
             )
-            .unwrap(),
-            result.unwrap()
+            .unwrap()
         );
     }
 }
