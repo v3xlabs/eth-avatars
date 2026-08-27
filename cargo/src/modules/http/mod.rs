@@ -1,10 +1,11 @@
 use std::str::FromStr;
 
-use super::LocatorError;
-use crate::resource::{Locator, Resource};
+use crate::{Locator, Resource, LocatorError};
 
 #[cfg(feature = "reqwest")]
 pub mod client;
+#[cfg(feature = "reqwest")]
+pub use client::HttpFetcher;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Http {

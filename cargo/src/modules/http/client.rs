@@ -1,12 +1,18 @@
 use async_trait::async_trait;
 use reqwest::Client;
 
-use super::super::{Fetcher, error::FetchError, http::Http};
-use crate::resource::Resource;
+use super::Http;
+use crate::{Resource, Fetcher, FetchError};
 
 #[derive(Default)]
 pub struct HttpFetcher {
     client: Client,
+}
+
+impl From<Client> for HttpFetcher {
+    fn from(client: Client) -> Self {
+        Self { client }
+    }
 }
 
 #[async_trait]

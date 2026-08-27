@@ -1,11 +1,9 @@
 use std::str::FromStr;
 
-use crate::{
-    modules::error::LocatorError,
-    resource::{Locator, Resource},
-};
+use crate::{Locator, Resource, LocatorError};
 
 pub mod gateway;
+pub use gateway::IpfsGateway;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum IpfsSchema {

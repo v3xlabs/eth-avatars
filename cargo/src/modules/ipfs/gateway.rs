@@ -1,9 +1,8 @@
 use async_trait::async_trait;
 
-use crate::{
-    modules::{Fetcher, error::FetchError, http::Http, ipfs::Ipfs},
-    resource::Resource,
-};
+use super::Ipfs;
+use super::super::http::Http;
+use crate::{Resource, Fetcher, FetchError};
 
 pub struct IpfsGateway {
     base: String,

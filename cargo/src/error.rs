@@ -7,6 +7,12 @@ pub enum LocatorError {
 
     #[error("url carries no cid")]
     IpfsEmptyCid,
+
+    #[error("no schema")]
+    NoSchema,
+
+    #[error("invalid")]
+    Invalid,
 }
 
 #[derive(Debug, Error)]

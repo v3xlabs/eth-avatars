@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use crate::{
-    modules::{AnyFetcher, Fetcher, error::FetchError},
-    resource::Resource,
-};
+use crate::{AnyFetcher, Fetcher, FetchError, Resource};
 
 pub struct AvatarClient {
     fetchers: Vec<Arc<dyn AnyFetcher>>,
