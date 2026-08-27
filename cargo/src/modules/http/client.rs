@@ -1,12 +1,12 @@
 use async_trait::async_trait;
-use reqwest::Client;
+use reqwest::Client as ReqwestClient;
 
 use super::Http;
 use crate::{FetchError, Fetcher, Resource};
 
 #[derive(Default)]
 pub struct HttpFetcher {
-    client: Client,
+    client: ReqwestClient,
 }
 
 impl From<Client> for HttpFetcher {

@@ -9,12 +9,12 @@ This crate is not limited to just avatars, it also works great for banners, and 
 
 Here is a simple example showing off how you can use `eth-avatars`:
 ```rust
-use eth_avatars::{AvatarClient, modules::{ipfs::{Ipfs, IpfsGateway}, http::HttpFetcher}};
+use eth_avatars::{Client, modules::{ipfs::IpfsGateway, http::HttpFetcher}};
 
 #[tokio::main]
 pub async fn main() {
     let http_client = reqwest::Client::default();
-    let client = AvatarClient::default()
+    let client = Client::default()
         .with_fetcher(IpfsGateway::new("https://ipfs.io/"))
         .with_fetcher(HttpFetcher::from(http_client));
 
@@ -49,7 +49,7 @@ pub mod resource;
 pub mod utils;
 
 pub use {
-    client::AvatarClient,
+    client::Client,
     error::{FetchError, LocatorError},
     modules::{AnyFetcher, Fetcher},
     resource::{Locator, Resource},

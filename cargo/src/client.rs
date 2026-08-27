@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use crate::{AnyFetcher, FetchError, Fetcher, Resource, resource::Dyncoder};
 
-pub struct AvatarClient {
+pub struct Client {
     fetchers: Vec<Arc<dyn AnyFetcher>>,
     max_hops: usize,
 }
 
 const DEFAULT_MAX_HOPS: usize = 5;
 
-impl Default for AvatarClient {
+impl Default for Client {
     fn default() -> Self {
         Self {
             fetchers: Vec::new(),
@@ -18,7 +18,7 @@ impl Default for AvatarClient {
     }
 }
 
-impl AvatarClient {
+impl Client {
     pub fn with_fetcher(mut self, fetcher: impl Fetcher + 'static) -> Self {
         self.fetchers.push(Arc::new(fetcher));
         self
@@ -77,7 +77,7 @@ impl AvatarClient {
 
 #[cfg(test)]
 mod tests {
-    use crate::{AvatarClient, modules::ipfs::IpfsGateway, resource::Resource};
+    use crate::{Client, modules::ipfs::IpfsGateway, resource::Resource};
 
     #[cfg(feature = "reqwest")]
     #[tokio::test]
@@ -89,7 +89,7 @@ mod tests {
 
         let mainnet_provider = get_test_provider().await;
 
-        let client = AvatarClient::default()
+        let client = Client::default()
             .with_fetcher(HttpFetcher::default())
             .with_fetcher(IpfsGateway::new("https://ipfs.io/"))
             .with_fetcher(EthereumResolver::new(1, mainnet_provider));
@@ -107,7 +107,7 @@ mod tests {
     async fn client_ipfs_to_bytes() {
         use crate::modules::http::HttpFetcher;
 
-        let client = AvatarClient::default()
+        let client = Client::default()
             .with_fetcher(HttpFetcher::default())
             .with_fetcher(IpfsGateway::new("https://ipfs.io/"));
 
