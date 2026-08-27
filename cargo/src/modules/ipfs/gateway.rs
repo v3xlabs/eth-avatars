@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use crate::{
-    fetchers::{Fetcher, error::FetchError, http::Http, ipfs::Ipfs},
+    modules::{Fetcher, error::FetchError, http::Http, ipfs::Ipfs},
     resource::Resource,
 };
 
@@ -39,7 +39,7 @@ impl Fetcher for IpfsGateway {
 #[cfg(test)]
 mod tests {
     use crate::{
-        fetchers::{
+        modules::{
             Fetcher,
             http::Http,
             ipfs::{Ipfs, gateway::IpfsGateway},

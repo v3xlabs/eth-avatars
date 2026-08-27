@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    fetchers::{AnyFetcher, Fetcher, error::FetchError},
+    modules::{AnyFetcher, Fetcher, error::FetchError},
     resource::Resource,
 };
 

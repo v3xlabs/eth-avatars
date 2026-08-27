@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::{
-    fetchers::error::LocatorError,
+    modules::error::LocatorError,
     resource::{Locator, Resource},
 };
 

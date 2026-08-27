@@ -1,3 +1,3 @@
 pub mod client;
-pub mod fetchers;
+pub mod modules;
 pub mod resource;

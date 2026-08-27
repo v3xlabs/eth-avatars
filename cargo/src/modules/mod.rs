@@ -1,9 +1,6 @@
 use async_trait::async_trait;
 
-use crate::{
-    fetchers::error::FetchError,
-    resource::{Locator, Resource},
-};
+use crate::resource::{Locator, Resource};
 
 pub mod arweave;
 pub mod error;
@@ -11,6 +8,8 @@ pub mod ethereum;
 pub mod http;
 pub mod ipfs;
 pub mod swarm;
+
+pub use {error::FetchError, error::LocatorError};
 
 #[async_trait]
 pub trait Fetcher: Send + Sync {

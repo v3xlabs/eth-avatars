@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
-use crate::{
-    fetchers::error::LocatorError,
-    resource::{Locator, Resource},
-};
+use super::LocatorError;
+use crate::resource::{Locator, Resource};
 
 #[cfg(feature = "reqwest")]
 pub mod client;

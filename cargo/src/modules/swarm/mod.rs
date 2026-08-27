@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
-use crate::{
-    fetchers::error::LocatorError,
-    resource::{Locator, Resource},
-};
+use super::LocatorError;
+use crate::resource::{Locator, Resource};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Swarm {

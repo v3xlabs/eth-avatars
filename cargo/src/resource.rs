@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::fetchers::{
+use crate::modules::{
     arweave::Arweave, error::LocatorError, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm,
 };
 
