@@ -4,7 +4,7 @@ use super::{
     ContractType, Ethereum,
     abi::{IERC721, IERC1155},
 };
-use crate::{FetchError, Fetcher, Resource, modules::ethereum::nft::NftMetadataDecoder};
+use crate::{AvatarError, Fetcher, Resource, modules::ethereum::nft::NftMetadataDecoder};
 
 use alloy::{primitives::ChainId, providers::DynProvider};
 
@@ -34,7 +34,7 @@ impl Fetcher for EthereumResolver {
         locator.network_id == self.network_id
     }
 
-    async fn fetch(&self, locator: &Ethereum) -> Result<Resource, FetchError> {
+    async fn fetch(&self, locator: &Ethereum) -> Result<Resource, AvatarError> {
         let url = match locator.contract_type {
             ContractType::ERC721 => {
                 IERC721::new(locator.contract, &self.provider)

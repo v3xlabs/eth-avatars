@@ -1,15 +1,13 @@
 use std::{str::FromStr, sync::Arc};
 
 use crate::{
-    FetchError, LocatorError,
-    Resource::Unresolved,
-    modules::{arweave::Arweave, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm},
+    AvatarError, LocatorError::{self, Unsupported}, modules::{arweave::Arweave, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm},
 };
 
 pub type Dyncoder = Arc<dyn Decoder>;
 
 pub trait Decoder: Send + Sync + 'static {
-    fn decode(&self, bytes: Vec<u8>) -> Result<Resource, FetchError>;
+    fn decode(&self, bytes: Vec<u8>) -> Result<Resource, AvatarError>;
 }
 
 pub trait Locator: Sized + Send + Sync + 'static + FromStr<Err = LocatorError> + PartialEq {
@@ -18,7 +16,6 @@ pub trait Locator: Sized + Send + Sync + 'static + FromStr<Err = LocatorError> +
 
 pub enum Resource {
     Raw(Vec<u8>),
-    Unresolved(String),
     Http(Http),
     Ipfs(Ipfs),
     Swarm(Swarm),
@@ -79,7 +76,7 @@ impl FromStr for Resource {
             "eip155" => s.parse().map(Resource::Ethereum),
             "http" | "https" => s.parse().map(Resource::Http),
             // "data" => decode_data_uri(rest).map(Resource::Raw),
-            _ => Ok(Unresolved(s.to_string())),
+            _ => Err(Unsupported(s.to_string())),
         }
     }
 }

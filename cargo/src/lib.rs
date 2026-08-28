@@ -50,7 +50,7 @@ pub mod utils;
 
 pub use {
     client::Client,
-    error::{FetchError, LocatorError},
+    error::{AvatarError, LocatorError},
     modules::{AnyFetcher, Fetcher},
     resource::{Locator, Resource},
 };

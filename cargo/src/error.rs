@@ -11,12 +11,15 @@ pub enum LocatorError {
     #[error("no schema")]
     NoSchema,
 
+    #[error("unsupported url: {0}")]
+    Unsupported(String),
+
     #[error("invalid")]
     Invalid,
 }
 
 #[derive(Debug, Error)]
-pub enum FetchError {
+pub enum AvatarError {
     #[error("no registered fetcher accepts this resource")]
     Unsupported,
 

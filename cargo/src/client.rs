@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{AnyFetcher, FetchError, Fetcher, Resource, resource::Dyncoder};
+use crate::{AnyFetcher, AvatarError, Fetcher, Resource, resource::Dyncoder};
 
 pub struct Client {
     fetchers: Vec<Arc<dyn AnyFetcher>>,
@@ -29,7 +29,7 @@ impl Client {
         self
     }
 
-    pub async fn fetch(&self, resource: Resource) -> Result<Vec<u8>, FetchError> {
+    pub async fn fetch(&self, resource: Resource) -> Result<Vec<u8>, AvatarError> {
         let mut current = resource;
         let mut decoders: Vec<Dyncoder> = Vec::new();
         let mut hops = 0;
@@ -49,7 +49,7 @@ impl Client {
                     self.step(&pending).await?
                 }
                 _ => {
-                    return Err(FetchError::TooManyHops {
+                    return Err(AvatarError::TooManyHops {
                         hops: self.max_hops,
                     });
                 }
@@ -57,7 +57,7 @@ impl Client {
         }
     }
 
-    async fn step(&self, resource: &Resource) -> Result<Resource, FetchError> {
+    async fn step(&self, resource: &Resource) -> Result<Resource, AvatarError> {
         let mut failure = None;
 
         for fetcher in &self.fetchers {
@@ -71,7 +71,7 @@ impl Client {
             }
         }
 
-        Err(failure.unwrap_or(FetchError::Unsupported))
+        Err(failure.unwrap_or(AvatarError::Unsupported))
     }
 }
 
@@ -103,6 +103,7 @@ mod tests {
         assert_eq!(result.len(), 559490);
     }
 
+    #[cfg(feature = "reqwest")]
     #[tokio::test]
     async fn client_ipfs_to_bytes() {
         use crate::modules::http::HttpFetcher;

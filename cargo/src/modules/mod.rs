@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::{FetchError, Locator, Resource};
+use crate::{AvatarError, Locator, Resource};
 
 pub mod arweave;
 pub mod ethereum;
@@ -16,17 +16,17 @@ pub trait Fetcher: Send + Sync {
         true
     }
 
-    async fn fetch(&self, locator: &Self::Locator) -> Result<Resource, FetchError>;
+    async fn fetch(&self, locator: &Self::Locator) -> Result<Resource, AvatarError>;
 }
 
 #[async_trait]
 pub trait AnyFetcher: Send + Sync {
-    async fn fetch_any(&self, resource: &Resource) -> Option<Result<Resource, FetchError>>;
+    async fn fetch_any(&self, resource: &Resource) -> Option<Result<Resource, AvatarError>>;
 }
 
 #[async_trait]
 impl<F: Fetcher> AnyFetcher for F {
-    async fn fetch_any(&self, resource: &Resource) -> Option<Result<Resource, FetchError>> {
+    async fn fetch_any(&self, resource: &Resource) -> Option<Result<Resource, AvatarError>> {
         let locator = F::Locator::of(resource)?;
 
         self.accepts(locator).then_some(())?;

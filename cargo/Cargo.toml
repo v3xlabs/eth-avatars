@@ -10,6 +10,7 @@ repository = "https://github.com/v3xlabs/eth-avatars/"
 crate-type = ["rlib"]
 
 [features]
+default = ["reqwest"]
 reqwest = ["dep:reqwest"]
 
 [dev-dependencies]
