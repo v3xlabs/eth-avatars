@@ -133,7 +133,7 @@ export const resolveNft = async (
     }
     const imageUrl = new URL(image.value, metadataUrl);
     if (imageUrl.protocol === "eip155:") {
-        return undefined;
+        return options.default;
     }
     return fetchResource(imageUrl, options);
 };

@@ -1,4 +1,4 @@
-import { Provider, RpcTransport } from "ox";
+import { AbiFunction, Provider, RpcTransport } from "ox";
 import { describe, expect, it, vi } from "vitest";
 import { avatar } from "../src/index.js";
 
@@ -32,6 +32,26 @@ describe.concurrent("IPFS resource loads", () => {
 });
 
 describe("NFT resource loads", () => {
+    it("returns the configured default for an unresolved NFT reference", async () => {
+        const tokenUri = AbiFunction.from("function tokenURI(uint256) returns (string)");
+        const metadataUri = "data:application/json,%7B%22image%22%3A%22eip155%3A1%2Ferc721%3A0x0000000000000000000000000000000000000001%2F1%22%7D";
+        const provider = Provider.from({
+            request: async ({ method }) => {
+                if (method !== "eth_call") {
+                    throw new Error(`Unexpected provider method: ${method}`);
+                }
+                return AbiFunction.encodeResult(tokenUri, [metadataUri]);
+            },
+        });
+        const fallback = new Uint8Array([1, 2, 3]).buffer;
+        const path = new URL("eip155:1/erc721:0x0000000000000000000000000000000000000001/1");
+
+        const resource = await avatar.resource(path, { provider, default: fallback });
+
+        expect(resource).toBe(fallback);
+        await expect(avatar.resource(path, { provider })).resolves.toBeUndefined();
+    });
+
     it("loads an NFT resource", async () => {
         const path = new URL("eip155:1/erc721:0x25ed58c027921e14d86380ea2646e3a1b5c55a8b/7828");
 

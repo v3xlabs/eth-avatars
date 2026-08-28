@@ -6,7 +6,7 @@ type WebCryptoAlgorithm = "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512";
  * @param key The key to use for caching the file in localStorage.
  * @returns A Promise that resolves to an ArrayBuffer of the cached file.
  */
-export const cacheInLocalstorage = async (get: () => Promise<ArrayBuffer>, key: string) => {
+export const cacheInLocalStorage = async (get: () => Promise<ArrayBuffer>, key: string) => {
     if (typeof localStorage === "undefined") {
         return await get();
     }
@@ -62,7 +62,7 @@ export const cacheInCOS = async (
         await writable.close();
         return buffer;
     } else if (typeof localStorage !== "undefined" && hash) {
-        return cacheInLocalstorage(get, `${hash.algorithm}:${hash.digest}`);
+        return cacheInLocalStorage(get, `${hash.algorithm}:${hash.digest}`);
     } else {
         return await get();
     }

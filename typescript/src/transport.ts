@@ -1,5 +1,5 @@
 import { CID } from "multiformats/cid";
-import { cacheInCOS, cacheInLocalstorage } from "./store.js";
+import { cacheInCOS, cacheInLocalStorage } from "./store.js";
 import { resolveNft } from "./nft.js";
 import type { ResourceOptions } from "./resource.js";
 
@@ -87,7 +87,7 @@ const fetchIpfs = async (path: URL, gateway: URL, fetcher: typeof fetch): Promis
     const key = `${cid.multihash.code}:${cid.multihash.digest.toString()}:${path.pathname}:${path.search}`;
     const cached = path.pathname === "/" && !path.search && hash
         ? cacheInCOS(get, hash)
-        : cacheInLocalstorage(get, key);
+        : cacheInLocalStorage(get, key);
     return cached;
 };
 
@@ -149,10 +149,12 @@ const fetchResourceContent = async (path: URL, options: ResourceOptions): Promis
 };
 
 /** Fetches bytes from supported resources, including one-hop NFT references. */
-export const fetchResource = async (
+export function fetchResource(path: URL, options: ResourceOptions & { default: ArrayBuffer }): Promise<ArrayBuffer>;
+export function fetchResource(path: URL, options?: ResourceOptions): Promise<ArrayBuffer | undefined>;
+export async function fetchResource(
     path: URL,
     options: ResourceOptions = {},
-): Promise<ArrayBuffer | undefined> => {
+): Promise<ArrayBuffer | undefined> {
     if (path.protocol === "eip155:") {
         return resolveNft(path, options, fetchResourceContent);
     }
