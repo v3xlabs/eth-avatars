@@ -49,7 +49,8 @@ impl Fetcher for EthereumResolver {
                     .await
             }
         }?;
-        let url = url.replace("{id}", &locator.token_id.to_string());
+        let token_id = format!("{:064x}", locator.token_id);
+        let url = url.replace("{id}", &token_id);
 
         Ok(url.parse::<Resource>()?.decoded_by(NftMetadataDecoder))
     }

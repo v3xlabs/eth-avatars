@@ -8,6 +8,9 @@ pub enum LocatorError {
     #[error("url carries no cid")]
     IpfsEmptyCid,
 
+    #[error("swarm url carries no reference")]
+    SwarmEmptyReference,
+
     #[error("no schema")]
     NoSchema,
 
