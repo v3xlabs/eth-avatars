@@ -9,8 +9,8 @@ pub struct HttpFetcher {
     client: ReqwestClient,
 }
 
-impl From<Client> for HttpFetcher {
-    fn from(client: Client) -> Self {
+impl From<ReqwestClient> for HttpFetcher {
+    fn from(client: ReqwestClient) -> Self {
         Self { client }
     }
 }
