@@ -21,6 +21,7 @@ serde = { version = "1", features = ["derive"] }
 tracing = { version = "0.1.44", default-features = false, features = ["log"] }
 thiserror = "2.0.18"
 async-trait = "0.1.89"
+data-url = "0.3"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"], optional = true }
 alloy = "2"
 strum = { version = "0.28", features = ["derive"] }

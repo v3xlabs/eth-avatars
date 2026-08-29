@@ -1,5 +1,7 @@
 use std::{str::FromStr, sync::Arc};
 
+use data_url::DataUrl;
+
 use crate::{
     FetchError, LocatorError,
     Resource::Unresolved,
@@ -73,15 +75,22 @@ impl FromStr for Resource {
         let (schema, _) = s.split_once(':').ok_or(LocatorError::NoSchema)?;
 
         match schema.to_lowercase().as_str() {
+            "data" => decode_data_uri(s).map(Resource::Raw),
             "ipfs" | "ipns" => s.parse().map(Resource::Ipfs),
             "bzz" => s.parse().map(Resource::Swarm),
             "ar" => s.parse().map(Resource::Arweave),
             "eip155" => s.parse().map(Resource::Ethereum),
             "http" | "https" => s.parse().map(Resource::Http),
-            // "data" => decode_data_uri(rest).map(Resource::Raw),
             _ => Ok(Unresolved(s.to_string())),
         }
     }
+}
+
+fn decode_data_uri(value: &str) -> Result<Vec<u8>, LocatorError> {
+    let data = DataUrl::process(value).map_err(|_| LocatorError::Invalid)?;
+    data.decode_to_vec()
+        .map(|(bytes, _)| bytes)
+        .map_err(|_| LocatorError::Invalid)
 }
 
 impl Resource {
