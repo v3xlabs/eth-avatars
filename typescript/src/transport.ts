@@ -10,6 +10,7 @@ type GatewayPath = {
 const defaultIpfsGateway = new URL("https://ipfs.io/");
 const defaultSwarmGateway = new URL("https://gateway.ethswarm.org/");
 const accept = "application/json, image/*";
+const maxResourceHops = 5;
 
 const requireHttpGateway = (gateway: URL, protocol: string): URL => {
   if (![("http:"), "https:"].includes(gateway.protocol)) {
@@ -158,8 +159,26 @@ const fetchResourceAt = async (
   options: ResourceOptions,
   hops: number,
 ): Promise<ArrayBuffer | undefined> => {
+  const resolvers = options.resourceResolvers ?? [];
+
+  for (const resolver of resolvers) {
+    const result = await resolver(path, options);
+
+    if (result instanceof URL) {
+      if (hops >= maxResourceHops) {
+        throw new Error(`Resource did not resolve within ${maxResourceHops} hops: ${path}`);
+      }
+
+      return fetchResourceAt(result, options, hops + 1);
+    }
+
+    if (result) {
+      return result;
+    }
+  }
+
   if (path.protocol === "eip155:") {
-    if (hops >= 5) {
+    if (hops >= maxResourceHops) {
       return options.default;
     }
 

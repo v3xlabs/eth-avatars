@@ -13,6 +13,20 @@ describe("data URL resource examples", () => {
 
     expect(new TextDecoder().decode(resource)).toBe(svg);
   });
+
+  it("supports custom resource resolvers", async () => {
+    const resource = await avatar.resource(new URL("custom://avatar"), {
+      resourceResolvers: [async (path) => {
+        if (path.protocol !== "custom:") {
+          return undefined;
+        }
+
+        return new TextEncoder().encode("custom").buffer;
+      }],
+    });
+
+    expect(new TextDecoder().decode(resource)).toBe("custom");
+  });
 });
 
 describe.concurrent("IPFS resource loads", () => {

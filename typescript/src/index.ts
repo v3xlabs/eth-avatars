@@ -1,5 +1,5 @@
 import { fetchResource } from "./transport.js";
-export type { ResourceOptions } from "./resource.js";
+export type { ResourceOptions, ResourceResolver } from "./resource.js";
 export {
   cacheStorageFetch,
   crossOriginStorageImmutableStore,
