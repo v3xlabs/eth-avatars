@@ -77,6 +77,7 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "reqwest")]
     use crate::{Client, modules::ipfs::IpfsGateway, resource::Resource};
 
     #[cfg(feature = "reqwest")]
@@ -103,6 +104,7 @@ mod tests {
         assert_eq!(result.len(), 559490);
     }
 
+    #[cfg(feature = "reqwest")]
     #[tokio::test]
     async fn client_ipfs_to_bytes() {
         use crate::modules::http::HttpFetcher;
