@@ -1,5 +1,6 @@
 import { fetchResource } from "./transport.js";
-export type { ResourceOptions, ResourceResolver } from "./resource.js";
+export type { DecodedResource, ResourceDecoder, ResourceOptions, ResourceResolver } from "./resource.js";
+export { decodedResource } from "./resource.js";
 export {
   cacheStorageFetch,
   crossOriginStorageImmutableStore,

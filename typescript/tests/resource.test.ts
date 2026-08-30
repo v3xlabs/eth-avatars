@@ -1,7 +1,7 @@
 import { AbiFunction, Provider, RpcTransport } from "ox";
 import { describe, expect, it, vi } from "vitest";
 
-import { avatar } from "../src/index.js";
+import { avatar, decodedResource } from "../src/index.js";
 import { immutableStore, memoryImmutableStore } from "../src/store.js";
 
 describe("data URL resource examples", () => {
@@ -26,6 +26,25 @@ describe("data URL resource examples", () => {
     });
 
     expect(new TextDecoder().decode(resource)).toBe("custom");
+  });
+
+  it("supports decoders that continue resolving resources", async () => {
+    const resource = await avatar.resource(new URL("encoded://avatar"), {
+      fetch: async () => new Response("decoded"),
+      resourceResolvers: [async (path) => {
+        if (path.protocol !== "encoded:") {
+          return undefined;
+        }
+
+        return decodedResource(new URL("https://example.test/avatar"), body =>
+          new TextEncoder().encode(
+            new TextDecoder().decode(body)
+              .toUpperCase(),
+          ).buffer);
+      }],
+    });
+
+    expect(new TextDecoder().decode(resource)).toBe("DECODED");
   });
 });
 

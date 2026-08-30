@@ -1,5 +1,5 @@
 import { resolveNft } from "./nft.js";
-import type { ResourceOptions } from "./resource.js";
+import type { DecodedResource, ResourceOptions } from "./resource.js";
 import { fetchImmutable, ipfsResource } from "./store.js";
 
 type GatewayPath = {
@@ -164,6 +164,18 @@ const fetchResourceAt = async (
   for (const resolver of resolvers) {
     const result = await resolver(path, options);
 
+    if (isDecodedResource(result)) {
+      const body = await fetchResourceAt(result.source, options, hops + 1);
+
+      if (body === undefined) {
+        return undefined;
+      }
+
+      const decoded = await result.decoder(body);
+
+      return resolveResource(decoded, options, hops + 1);
+    }
+
     if (result instanceof URL) {
       if (hops >= maxResourceHops) {
         throw new Error(`Resource did not resolve within ${maxResourceHops} hops: ${path}`);
@@ -186,4 +198,23 @@ const fetchResourceAt = async (
   }
 
   return fetchResourceContent(path, options);
+};
+
+const isDecodedResource = (value: ArrayBuffer | URL | DecodedResource | undefined): value is DecodedResource =>
+  typeof value === "object" && value !== null && "source" in value && "decoder" in value;
+
+const resolveResource = async (
+  result: ArrayBuffer | URL,
+  options: ResourceOptions,
+  hops: number,
+): Promise<ArrayBuffer | undefined> => {
+  if (result instanceof URL) {
+    if (hops >= maxResourceHops) {
+      throw new Error(`Resource did not resolve within ${maxResourceHops} hops: ${result}`);
+    }
+
+    return fetchResourceAt(result, options, hops + 1);
+  }
+
+  return result;
 };

@@ -2,10 +2,22 @@ import type { Provider } from "ox";
 
 import type { ImmutableStore } from "./store.js";
 
+export type ResourceDecoder = (body: ArrayBuffer) => ArrayBuffer | URL | Promise<ArrayBuffer | URL>;
+
+export type DecodedResource = {
+  source: URL;
+  decoder: ResourceDecoder;
+};
+
 export type ResourceResolver = (
   path: URL,
   options: ResourceOptions,
-) => Promise<ArrayBuffer | URL | undefined>;
+) => Promise<ArrayBuffer | URL | DecodedResource | undefined>;
+
+export const decodedResource = (source: URL, decoder: ResourceDecoder): DecodedResource => ({
+  source,
+  decoder,
+});
 
 export type ResourceOptions = {
   provider?: Provider.Provider;
