@@ -14,13 +14,30 @@ const algorithms = new Map<number, "SHA-1" | "SHA-256" | "SHA-512">([
 const digest = (cid: CID): string =>
   Array.from(cid.multihash.digest, byte => byte.toString(16).padStart(2, "0")).join("");
 
+const normalizeContentUrl = (path: URL): URL => {
+  if (path.hostname) {
+    return path;
+  }
+
+  const [name, ...segments] = path.pathname.replace(/^\/+/, "").split("/");
+
+  if (!name) {
+    throw new Error(`Resource URI carries no identifier: ${path}`);
+  }
+
+  const resourcePath = segments.length > 0 ? `/${segments.join("/")}` : "";
+
+  return new URL(`${path.protocol}//${name}${resourcePath}${path.search}`);
+};
+
 /** Creates the stable storage identity for an IPFS resource. */
 export const ipfsResource = (path: URL): StorageResource => {
-  const cid = CID.parse(path.hostname);
-  const key = `ipfs:${cid.multihash.code}:${digest(cid)}:${path.pathname}:${path.search}`;
+  const normalized = normalizeContentUrl(path);
+  const cid = CID.parse(normalized.hostname);
+  const key = `ipfs:${cid.multihash.code}:${digest(cid)}:${normalized.pathname}:${normalized.search}`;
   const algorithm = algorithms.get(cid.multihash.code);
 
-  if (!algorithm || path.pathname !== "/" || path.search) {
+  if (!algorithm || normalized.pathname !== "/" || normalized.search) {
     return { key };
   }
 
@@ -73,13 +90,15 @@ const fromGatewayUrl = (url: URL): GatewayResource | undefined => {
 };
 
 export const fetchIpfs = (path: URL, options: ResourceOptions, gateway = options.ipfsGateway ?? defaultGateway): Promise<ArrayBuffer> => {
-  const target = new URL(`/ipfs/${path.hostname}${path.pathname}${path.search}`, requireHttpGateway(gateway, "IPFS"));
+  const normalized = normalizeContentUrl(path);
+  const target = new URL(`ipfs/${normalized.hostname}${normalized.pathname}${normalized.search}`, requireHttpGateway(gateway, "IPFS"));
 
-  return fetchStored(options.storage, ipfsResource(path), () => fetchHttp(target, options));
+  return fetchStored(options.storage, ipfsResource(normalized), () => fetchHttp(target, options));
 };
 
 export const fetchIpns = (path: URL, options: ResourceOptions, gateway = options.ipfsGateway ?? defaultGateway): Promise<ArrayBuffer> => {
-  const target = new URL(`/${path.protocol.slice(0, -1)}/${path.hostname}${path.pathname}${path.search}`, requireHttpGateway(gateway, "IPNS"));
+  const normalized = normalizeContentUrl(path);
+  const target = new URL(`${normalized.protocol.slice(0, -1)}/${normalized.hostname}${normalized.pathname}${normalized.search}`, requireHttpGateway(gateway, "IPNS"));
 
   return fetchHttp(target, options);
 };

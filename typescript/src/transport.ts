@@ -3,9 +3,7 @@ import { fetchHttp } from "./modules/http.js";
 import { fetchGatewayResource, fetchIpfs, fetchIpns } from "./modules/ipfs.js";
 import { fetchSwarm } from "./modules/swarm.js";
 import { resolveNft } from "./nft.js";
-import type { DecodedResource, ResourceOptions } from "./resource.js";
-
-const maxResourceHops = 5;
+import { type DecodedResource, maxResourceHops, type ResourceOptions } from "./resource.js";
 
 const fetchResourceContent = async (path: URL, options: ResourceOptions): Promise<ArrayBuffer> => {
   const gatewayResource = fetchGatewayResource(path, options);
@@ -53,6 +51,10 @@ const fetchResourceAt = async (
   for (const resolver of resolvers) {
     const result = await resolver(path, options);
 
+    if (result !== undefined && hops >= maxResourceHops) {
+      throw new Error(`Resource did not resolve within ${maxResourceHops} hops: ${path}`);
+    }
+
     if (isDecodedResource(result)) {
       const body = await fetchResourceAt(result.source, options, hops + 1);
 
@@ -66,10 +68,6 @@ const fetchResourceAt = async (
     }
 
     if (result instanceof URL) {
-      if (hops >= maxResourceHops) {
-        throw new Error(`Resource did not resolve within ${maxResourceHops} hops: ${path}`);
-      }
-
       return fetchResourceAt(result, options, hops + 1);
     }
 
@@ -83,7 +81,11 @@ const fetchResourceAt = async (
       return options.default;
     }
 
-    return resolveNft(path, options, fetchResourceAt, hops);
+    return resolveNft(path, options, fetchResourceAt, hops + 1);
+  }
+
+  if (path.protocol !== "data:" && hops >= maxResourceHops) {
+    throw new Error(`Resource did not resolve within ${maxResourceHops} hops: ${path}`);
   }
 
   return fetchResourceContent(path, options);

@@ -6,11 +6,20 @@ const defaultGateway = new URL("https://gateway.ethswarm.org/");
 
 export const fetchSwarm = (path: URL, options: ResourceOptions): Promise<ArrayBuffer> => {
   const gateway = requireHttpGateway(options.swarmGateway ?? defaultGateway, "Swarm");
-  const target = new URL(`/bzz/${path.hostname}${path.pathname}${path.search}`, gateway);
+  const [reference, ...segments] = (path.hostname ? `${path.hostname}${path.pathname}` : path.pathname)
+    .replace(/^\/+/, "")
+    .split("/");
+
+  if (!reference) {
+    throw new Error(`Swarm URI carries no reference: ${path}`);
+  }
+
+  const resourcePath = `/${segments.join("/")}`;
+  const target = new URL(`bzz/${reference}${resourcePath}${path.search}`, gateway);
 
   return fetchStored(
     options.storage,
-    { key: `bzz:${path.hostname}:${path.pathname}:${path.search}` },
+    { key: `bzz:${reference}:${resourcePath}:${path.search}` },
     () => fetchHttp(target, options),
   );
 };

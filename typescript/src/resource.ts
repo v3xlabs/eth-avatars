@@ -2,6 +2,8 @@ import type { Provider } from "ox";
 
 import type { Storage } from "./modules.js";
 
+export const maxResourceHops = 5;
+
 export type ResourceDecoder = (body: ArrayBuffer) => ArrayBuffer | URL | Promise<ArrayBuffer | URL>;
 
 export type DecodedResource = {
