@@ -143,15 +143,27 @@ const fetchResourceContent = async (path: URL, options: ResourceOptions): Promis
   }
 };
 
-/** Fetches bytes from supported resources, including one-hop NFT references. */
+/** Fetches bytes from supported resources, including bounded NFT references. */
 export function fetchResource(path: URL, options: ResourceOptions & { default: ArrayBuffer; }): Promise<ArrayBuffer>;
 export function fetchResource(path: URL, options?: ResourceOptions): Promise<ArrayBuffer | undefined>;
 export async function fetchResource(
   path: URL,
   options: ResourceOptions = {},
 ): Promise<ArrayBuffer | undefined> {
+  return fetchResourceAt(path, options, 0);
+}
+
+const fetchResourceAt = async (
+  path: URL,
+  options: ResourceOptions,
+  hops: number,
+): Promise<ArrayBuffer | undefined> => {
   if (path.protocol === "eip155:") {
-    return resolveNft(path, options, fetchResourceContent);
+    if (hops >= 5) {
+      return options.default;
+    }
+
+    return resolveNft(path, options, fetchResourceAt, hops);
   }
 
   return fetchResourceContent(path, options);

@@ -23,7 +23,7 @@ type NftImage = {
   raw: boolean;
 };
 
-type ResourceFetcher = (path: URL, options: ResourceOptions) => Promise<ArrayBuffer>;
+type ResourceFetcher = (path: URL, options: ResourceOptions, hops: number) => Promise<ArrayBuffer | undefined>;
 
 const isHex = (value: unknown): value is Hex.Hex =>
   typeof value === "string" && /^0x[0-9a-fA-F]*$/.test(value);
@@ -110,8 +110,9 @@ const readMetadata = async (
   path: URL,
   options: ResourceOptions,
   fetchResource: ResourceFetcher,
+  hops: number,
 ): Promise<unknown> => {
-  const bytes = await fetchResource(path, options);
+  const bytes = await fetchResource(path, options, hops);
   const metadata: unknown = JSON.parse(new TextDecoder().decode(bytes));
 
   return metadata;
@@ -122,6 +123,7 @@ export const resolveNft = async (
   path: URL,
   options: ResourceOptions,
   fetchResource: ResourceFetcher,
+  hops: number,
 ): Promise<ArrayBuffer | undefined> => {
   const reference = parseNft(path);
 
@@ -137,7 +139,7 @@ export const resolveNft = async (
 
   const uriValue = await metadataUri(reference, provider);
   const metadataPath = reference.kind === "erc1155"
-    ? uriValue.replace("{id}", () => reference.tokenId.toString(16).padStart(64, "0"))
+    ? uriValue.split("{id}").join(reference.tokenId.toString(16).padStart(64, "0"))
     : uriValue;
   let metadataUrl: URL;
 
@@ -148,7 +150,7 @@ export const resolveNft = async (
     throw new Error(`NFT metadata URI must be absolute: ${metadataPath}`);
   }
 
-  const image = metadataImage(await readMetadata(metadataUrl, options, fetchResource));
+  const image = metadataImage(await readMetadata(metadataUrl, options, fetchResource, hops));
 
   if (image.raw) {
     return new TextEncoder().encode(image.value).buffer;
@@ -157,8 +159,12 @@ export const resolveNft = async (
   const imageUrl = new URL(image.value, metadataUrl);
 
   if (imageUrl.protocol === "eip155:") {
-    return options.default;
+    if (hops >= 5) {
+      return options.default;
+    }
+
+    return fetchResource(imageUrl, options, hops + 1);
   }
 
-  return fetchResource(imageUrl, options);
+  return fetchResource(imageUrl, options, hops);
 };
