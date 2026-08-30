@@ -1,15 +1,14 @@
 import { fetchResource } from "./transport.js";
-export type { DecodedResource, ResourceDecoder, ResourceOptions, ResourceResolver } from "./resource.js";
-export { decodedResource } from "./resource.js";
 export {
   cacheStorageFetch,
-  crossOriginStorageImmutableStore,
-  fetchImmutable,
-  immutableStore,
+  crossOriginStorage,
+  fetchStored,
   ipfsResource,
-  localStorageImmutableStore,
-  memoryImmutableStore,
-} from "./store.js";
+  localStorage,
+  memoryStorage,
+} from "./modules.js";
+export type { DecodedResource, ResourceDecoder, ResourceOptions, ResourceResolver } from "./resource.js";
+export { decodedResource } from "./resource.js";
 
 export const avatar = {
   resource: fetchResource,

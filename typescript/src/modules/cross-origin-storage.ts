@@ -1,7 +1,7 @@
-import type { ImmutableStore } from "./protocol.js";
+import type { Storage } from "./protocol.js";
 
-/** Creates an immutable store backed by Cross-Origin Storage when eligible. */
-export const crossOriginStorageImmutableStore = (): ImmutableStore => ({
+/** Creates storage backed by Cross-Origin Storage when eligible. */
+export const crossOriginStorage = (): Storage => ({
   async read(resource) {
     const storage = typeof navigator === "undefined" ? undefined : navigator.crossOriginStorage;
 

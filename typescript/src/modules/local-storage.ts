@@ -1,4 +1,4 @@
-import type { ImmutableStore } from "./protocol.js";
+import type { Storage } from "./protocol.js";
 
 const encode = (body: ArrayBuffer): string => {
   const bytes = new Uint8Array(body);
@@ -14,17 +14,17 @@ const encode = (body: ArrayBuffer): string => {
 const decode = (value: string): ArrayBuffer =>
   Uint8Array.from(atob(value), character => character.codePointAt(0) ?? 0).buffer;
 
-/** Creates an immutable store backed by localStorage when available. */
-export const localStorageImmutableStore = (prefix = "ens-avatars-cache"): ImmutableStore => ({
+/** Creates storage backed by localStorage when available. */
+export const localStorage = (prefix = "ens-avatars-cache"): Storage => ({
   async read(resource) {
-    if (typeof localStorage === "undefined") {
+    if (globalThis.localStorage === undefined) {
       return undefined;
     }
 
     const key = `${prefix}:${resource.key}`;
 
     try {
-      const cached = localStorage.getItem(key);
+      const cached = globalThis.localStorage.getItem(key);
 
       if (cached) {
         return decode(cached);
@@ -35,12 +35,12 @@ export const localStorageImmutableStore = (prefix = "ens-avatars-cache"): Immuta
     }
   },
   async write(resource, body) {
-    if (typeof localStorage === "undefined") {
+    if (globalThis.localStorage === undefined) {
       return;
     }
 
     try {
-      localStorage.setItem(`${prefix}:${resource.key}`, encode(body));
+      globalThis.localStorage.setItem(`${prefix}:${resource.key}`, encode(body));
     }
     catch {
       //

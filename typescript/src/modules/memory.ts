@@ -1,7 +1,6 @@
-import type { ImmutableStore } from "./protocol.js";
+import type { Storage } from "./protocol.js";
 
-/** Creates an isolated store for immutable resource bytes. */
-export const memoryImmutableStore = (): ImmutableStore => {
+export const memoryStorage = (): Storage => {
   const entries = new Map<string, ArrayBuffer>();
 
   return {

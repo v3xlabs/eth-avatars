@@ -2,7 +2,7 @@ import { AbiFunction, Provider, RpcTransport } from "ox";
 import { describe, expect, it, vi } from "vitest";
 
 import { avatar, decodedResource } from "../src/index.js";
-import { immutableStore, memoryImmutableStore } from "../src/store.js";
+import { memoryStorage, storage } from "../src/modules.js";
 
 describe("data URL resource examples", () => {
   it("loads a percent-encoded image data URL", async () => {
@@ -71,7 +71,7 @@ describe("immutable resource storage", () => {
     const fetcher = vi.fn(async () => new Response("immutable"));
     const options = {
       fetch: fetcher,
-      immutableStore: memoryImmutableStore(),
+      storage: memoryStorage(),
       ipfsGateway: new URL("https://ipfs.example/"),
     };
     const path = new URL("ipfs://QmXRMBA1S2em4AoUbZrNY1jcxuhzCWaE494RqSDKfmF3in");
@@ -89,7 +89,7 @@ describe("immutable resource storage", () => {
     }));
     const options = {
       fetch: fetcher,
-      immutableStore: memoryImmutableStore(),
+      storage: memoryStorage(),
       ipfsGateway: new URL("https://ipfs.example/"),
     };
     const path = new URL("ipns://example-name/avatar.png");
@@ -104,7 +104,7 @@ describe("immutable resource storage", () => {
     const fetcher = vi.fn(async () => new Response("swarm"));
     const options = {
       fetch: fetcher,
-      immutableStore: memoryImmutableStore(),
+      storage: memoryStorage(),
       swarmGateway: new URL("https://swarm.example/"),
     };
     const path = new URL("bzz://aabbcc/file.png");
@@ -117,13 +117,13 @@ describe("immutable resource storage", () => {
   });
 
   it("reads composed stores in order", async () => {
-    const first = memoryImmutableStore();
-    const second = memoryImmutableStore();
+    const first = memoryStorage();
+    const second = memoryStorage();
     const resource = { key: "bzz:reference:/" };
 
     await second.write(resource, new TextEncoder().encode("second").buffer);
 
-    const store = immutableStore(first, second);
+    const store = storage(first, second);
 
     expect(new TextDecoder().decode(await store.read(resource))).toBe("second");
   });

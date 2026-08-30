@@ -1,7 +1,7 @@
-import type { ImmutableResource, ImmutableStore } from "./protocol.js";
+import type { Storage, StorageResource } from "./protocol.js";
 
-/** Combines immutable stores, reading in order and writing through to every store. */
-export const immutableStore = (...stores: readonly ImmutableStore[]): ImmutableStore => ({
+/** Combines storage backends, reading in order and writing through to every backend. */
+export const storage = (...stores: readonly Storage[]): Storage => ({
   async read(resource) {
     for (const store of stores) {
       const body = await store.read(resource);
@@ -18,9 +18,9 @@ export const immutableStore = (...stores: readonly ImmutableStore[]): ImmutableS
   },
 });
 
-export const fetchImmutable = async (
-  store: ImmutableStore | undefined,
-  resource: ImmutableResource,
+export const fetchStored = async (
+  store: Storage | undefined,
+  resource: StorageResource,
   download: () => Promise<ArrayBuffer>,
 ): Promise<ArrayBuffer> => {
   const cached = await store?.read(resource);

@@ -1,6 +1,6 @@
 import type { Provider } from "ox";
 
-import type { ImmutableStore } from "./store.js";
+import type { Storage } from "./modules.js";
 
 export type ResourceDecoder = (body: ArrayBuffer) => ArrayBuffer | URL | Promise<ArrayBuffer | URL>;
 
@@ -24,7 +24,7 @@ export type ResourceOptions = {
   ipfsGateway?: URL;
   swarmGateway?: URL;
   fetch?: typeof fetch;
-  immutableStore?: ImmutableStore;
+  storage?: Storage;
   resourceResolvers?: readonly ResourceResolver[];
   default?: ArrayBuffer;
 };
