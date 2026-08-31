@@ -1,7 +1,9 @@
 use std::{str::FromStr, sync::Arc};
 
 use crate::{
-    AvatarError, LocatorError::{self, Unsupported}, modules::{arweave::Arweave, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm},
+    AvatarError,
+    LocatorError::{self, Unsupported},
+    modules::{arweave::Arweave, ethereum::Ethereum, http::Http, ipfs::Ipfs, swarm::Swarm},
 };
 
 pub type Dyncoder = Arc<dyn Decoder>;

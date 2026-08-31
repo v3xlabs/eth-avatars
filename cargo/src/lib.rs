@@ -31,7 +31,8 @@ You can configure any of the below sources (one minimum) to support a protocol.
   - [`http::HttpFetcher`](`modules::http::HttpFetcher`)
 - [`Ipfs`](`modules::ipfs::Ipfs`)
     - [`ipfs::IpfsGateway`](`modules::ipfs::IpfsGateway`)
-- [`Swarm`](`modules::swarm::Swarm`) module is still under development
+- [`Swarm`](`modules::swarm::Swarm`)
+    - [`swarm::SwarmGateway`](`modules::swarm::SwarmGateway`)
 - [`Arweave`](`modules::arweave::Arweave`) module is still under development
 - [`Ethereum`](`modules::ethereum::Ethereum`)
     - [`ethereum::EthereumResolver`](`modules::ethereum::EthereumResolver`)
