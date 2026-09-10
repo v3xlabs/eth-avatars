@@ -54,7 +54,7 @@
     "eslint-plugin-v3xlabs": "^1.8.1",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.62.1",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.11"
   },
   "packageManager": "pnpm@10.15.0",
   "dependencies": {
