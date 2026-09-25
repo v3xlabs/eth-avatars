@@ -2,4 +2,5 @@
 .envrc
 target/
 node_modules/
+.pnpm-store/
 .tmp/
